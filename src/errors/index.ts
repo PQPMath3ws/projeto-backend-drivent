@@ -1,5 +1,6 @@
 export * from './cannot-enroll-before-start-date-error';
 export * from './conflict-error';
+export * from './invalid-body-data-error';
 export * from './invalid-data-error';
 export * from './invalid-email-error';
 export * from './not-found-error';
