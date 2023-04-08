@@ -6,22 +6,26 @@ import enrollmentRepository, { CreateEnrollmentParams } from '@/repositories/enr
 import { exclude } from '@/utils/prisma-utils';
 
 async function getAddressFromCEP(cep: string) {
-  const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
+  if (/^[0-9]{8}$/.test(cep)) {
+    const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
 
-  if (!result.data) throw notFoundError();
+    if (!result.data) throw notFoundError();
 
-  const { bairro, complemento, uf, localidade, logradouro } = result.data as {
-    bairro: string;
-    complemento: string;
-    uf: string;
-    localidade: string;
-    logradouro: string;
-  };
+    const { bairro, complemento, uf, localidade, logradouro } = result.data as {
+      bairro: string;
+      complemento: string;
+      uf: string;
+      localidade: string;
+      logradouro: string;
+    };
 
-  if (bairro && complemento && uf && localidade && logradouro)
-    return { bairro, cidade: localidade, complemento, uf, logradouro };
+    if (bairro && complemento && uf && localidade && logradouro)
+      return { bairro, cidade: localidade, complemento, uf, logradouro };
 
-  throw invalidBodyDataError('Invalid or Inexistent CEP.');
+    throw invalidBodyDataError('Invalid or Inexistent CEP.');
+  } else {
+    throw notFoundError();
+  }
 }
 
 async function getOneWithAddressByUserId(userId: number): Promise<GetOneWithAddressByUserIdResult> {
