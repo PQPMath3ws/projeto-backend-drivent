@@ -6,8 +6,8 @@ import enrollmentRepository, { CreateEnrollmentParams } from '@/repositories/enr
 import { exclude } from '@/utils/prisma-utils';
 
 async function getAddressFromCEP(cep: string) {
-  if (/^[0-9]{8}$/.test(cep)) {
-    const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
+  if (/^([0-9]{8}|[0-9]{5}-[0-9]{3})$/.test(cep)) {
+    const result = await request.get(`${process.env.VIA_CEP_API}/${cep.replace('-', '')}/json/`);
 
     if (!result.data) throw notFoundError();
 
@@ -57,7 +57,7 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
   const address = getAddressForUpsert(params.address);
 
   try {
-    await getAddressFromCEP('00000000');
+    await getAddressFromCEP(address.cep);
   } catch {
     throw invalidDataError(['invalid CEP']);
   }
