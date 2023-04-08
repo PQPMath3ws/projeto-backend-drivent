@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: drivent-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+      - ~/.ssh:/root/.ssh
+      - ./startup.sh:/docker-entrypoint-initdb.d/startup.sh
+    command: bash -c "/docker-entrypoint-initdb.d/startup.sh && sleep infinity"
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally. 
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+    ports:
+      - 4000:4000
+    networks:
+      - drivent_postgres_dev
+    links:
+      - postgres
+      - pgadmin4
+
+  postgres:
+    container_name: drivent-postgres
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./createdbs.sh:/docker-entrypoint-initdb.d/createdbs.sh
+    environment:
+      POSTGRES_PASSWORD: driventsecretpassword
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_MULTIPLE_DATABASES: drivent_dev,drivent_dev_test
+    # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+    ports:
+      - 5432:5432
+    networks:
+      - drivent_postgres_dev
+  
+  pgadmin4:
+    container_name: drivent-pgadmin4
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    volumes:
+      - pgadmin4-data:/var/lib/pgadmin4/data
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      MAX_LOGIN_ATTEMPTS: 5
+    # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+    ports:
+      - 4001:4001
+      - 4002:4002
+    networks:
+      - drivent_postgres_dev
+
+volumes:
+  postgres-data:
+  pgadmin4-data:
+
+networks:
+  drivent_postgres_dev:
+    driver: bridge
