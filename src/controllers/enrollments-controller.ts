@@ -29,16 +29,14 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
 }
 
 export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response) {
+  const { cep } = req.query as Record<string, string>;
+
   try {
-    const { cep } = req.query as { cep: string };
     const address = await enrollmentsService.getAddressFromCEP(cep);
     res.status(httpStatus.OK).send(address);
   } catch (error) {
     if (error.name === 'NotFoundError') {
-      return res.sendStatus(httpStatus.NO_CONTENT);
-    }
-    if (error.name === 'InvalidBodyDataError') {
-      return res.status(httpStatus.BAD_REQUEST).send(error);
+      return res.send(httpStatus.NO_CONTENT);
     }
   }
 }

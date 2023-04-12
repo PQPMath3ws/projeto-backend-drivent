@@ -1,31 +1,29 @@
 import { Address, Enrollment } from '@prisma/client';
 import { request } from '@/utils/request';
-import { invalidBodyDataError, invalidDataError, notFoundError } from '@/errors';
+import { invalidDataError, notFoundError } from '@/errors';
 import addressRepository, { CreateAddressParams } from '@/repositories/address-repository';
 import enrollmentRepository, { CreateEnrollmentParams } from '@/repositories/enrollment-repository';
 import { exclude } from '@/utils/prisma-utils';
+import { AddressEnrollment } from '@/protocols';
 
-async function getAddressFromCEP(cep: string) {
-  if (/^([0-9]{8}|[0-9]{5}-[0-9]{3})$/.test(cep)) {
-    const result = await request.get(`${process.env.VIA_CEP_API}/${cep.replace('-', '')}/json/`);
+async function getAddressFromCEP(cep: string): Promise<AddressEnrollment> {
+  const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
 
-    if (!result.data) throw notFoundError();
-
-    const { bairro, complemento, uf, localidade, logradouro } = result.data as {
-      bairro: string;
-      complemento: string;
-      uf: string;
-      localidade: string;
-      logradouro: string;
-    };
-
-    if (bairro && complemento && uf && localidade && logradouro)
-      return { bairro, cidade: localidade, complemento, uf, logradouro };
-
-    throw invalidBodyDataError('Invalid or Inexistent CEP.');
-  } else {
-    throw notFoundError();
+  if (!result.data || result.data.erro) {
+    throw notFoundError(); // lança um erro para quem chamou essa função!
   }
+
+  const { bairro, localidade, uf, complemento, logradouro } = result.data;
+
+  const address: AddressEnrollment = {
+    bairro,
+    cidade: localidade,
+    uf,
+    complemento,
+    logradouro,
+  };
+
+  return address;
 }
 
 async function getOneWithAddressByUserId(userId: number): Promise<GetOneWithAddressByUserIdResult> {
