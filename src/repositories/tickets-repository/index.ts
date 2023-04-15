@@ -37,11 +37,23 @@ async function findTicketById(ticketId: number): Promise<Ticket> {
   });
 }
 
+async function findTicketWithTypeById(ticketId: number): Promise<Ticket & { TicketType: TicketType }> {
+  return await prisma.ticket.findFirst({
+    where: {
+      id: ticketId,
+    },
+    include: {
+      TicketType: true,
+    },
+  });
+}
+
 const ticketsRepository = {
   findLastTicketUserByEnrollmentId,
   findTicketTypes,
   createUserTicket,
   findTicketById,
+  findTicketWithTypeById,
 };
 
 export default ticketsRepository;
