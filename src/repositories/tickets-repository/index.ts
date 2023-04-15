@@ -1,8 +1,8 @@
-import { Ticket } from '@prisma/client';
+import { Ticket, TicketType } from '@prisma/client';
 import { prisma } from '@/config';
 
 async function findLastTicketUserByEnrollmentId(enrollmentId: number): Promise<Ticket> {
-  return prisma.ticket.findFirst({
+  return await prisma.ticket.findFirst({
     where: {
       enrollmentId,
     },
@@ -12,8 +12,13 @@ async function findLastTicketUserByEnrollmentId(enrollmentId: number): Promise<T
   });
 }
 
+async function findTicketTypes(): Promise<TicketType[]> {
+  return await prisma.ticketType.findMany();
+}
+
 const ticketsRepository = {
   findLastTicketUserByEnrollmentId,
+  findTicketTypes,
 };
 
 export default ticketsRepository;
