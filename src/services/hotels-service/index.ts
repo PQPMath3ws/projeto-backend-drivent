@@ -11,7 +11,9 @@ async function getHotels(userId: number): Promise<Hotel[]> {
 
   const ticket = await ticketsRepository.findTicketByEnrollmentId(enrollment.id);
 
-  if (!ticket || ticket.status === 'RESERVED' || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel)
+  if (!ticket) throw notFoundError();
+
+  if (ticket.status === 'RESERVED' || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel)
     throw cannotListHotelsError();
 
   const hotels = await hotelsRepository.getHotels();
@@ -28,7 +30,9 @@ async function getRoomsFromHotel(userId: number, hotelId: number): Promise<Hotel
 
   const ticket = await ticketsRepository.findTicketByEnrollmentId(enrollment.id);
 
-  if (!ticket || ticket.status === 'RESERVED' || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel)
+  if (!ticket) throw notFoundError();
+
+  if (ticket.status === 'RESERVED' || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel)
     throw cannotListHotelsError();
 
   const hotelWithRooms = await hotelsRepository.findRoomsByHotelId(hotelId);
