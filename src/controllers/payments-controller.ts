@@ -4,18 +4,16 @@ import { AuthenticatedRequest } from '@/middlewares';
 import paymentsService from '@/services/payments-service';
 
 export async function getPaymentByTicketId(req: AuthenticatedRequest, res: Response) {
-  const { userId } = req;
-
-  const { ticketId } = req.query;
-
-  if (!ticketId && Number.isNaN(Number(ticketId))) return res.sendStatus(httpStatus.BAD_REQUEST);
-
   try {
-    const ticketPayment = await paymentsService.getPaymentByTicketId(Number(userId), Number(ticketId));
+    const ticketId = Number(req.query.ticketId);
+    const { userId } = req;
 
-    if (!ticketPayment) return res.sendStatus(httpStatus.NOT_FOUND);
+    if (!ticketId) return res.sendStatus(httpStatus.BAD_REQUEST);
 
-    return res.status(httpStatus.OK).send(ticketPayment);
+    const payment = await paymentsService.getPaymentByTicketId(userId, ticketId);
+    if (!payment) return res.sendStatus(httpStatus.NOT_FOUND);
+
+    return res.status(httpStatus.OK).send(payment);
   } catch (error) {
     if (error.name === 'UnauthorizedError') {
       return res.sendStatus(httpStatus.UNAUTHORIZED);
@@ -24,21 +22,17 @@ export async function getPaymentByTicketId(req: AuthenticatedRequest, res: Respo
   }
 }
 
-export async function processPayment(req: AuthenticatedRequest, res: Response) {
+export async function paymentProcess(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
-
   const { ticketId, cardData } = req.body;
 
-  if ((!ticketId && Number.isNaN(Number(ticketId))) || !cardData) return res.sendStatus(httpStatus.BAD_REQUEST);
-
   try {
-    const payment = await paymentsService.makePayment(userId, ticketId, cardData);
+    if (!ticketId || !cardData) return res.sendStatus(httpStatus.BAD_REQUEST);
 
-    const finalPayment = payment[0];
+    const payment = await paymentsService.paymentProcess(ticketId, userId, cardData);
+    if (!payment) return res.sendStatus(httpStatus.NOT_FOUND);
 
-    if (!finalPayment) return res.sendStatus(httpStatus.NOT_FOUND);
-
-    return res.status(httpStatus.OK).send(finalPayment);
+    return res.status(httpStatus.OK).send(payment);
   } catch (error) {
     if (error.name === 'UnauthorizedError') {
       return res.sendStatus(httpStatus.UNAUTHORIZED);

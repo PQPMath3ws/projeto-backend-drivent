@@ -1,38 +1,21 @@
-import { Payment, Ticket, TicketStatus } from '@prisma/client';
 import { prisma } from '@/config';
+import { PaymentParams } from '@/protocols';
 
-async function findPaymentByTicketId(ticketId: number): Promise<Payment> {
-  return await prisma.payment.findFirst({
+async function findPaymentByTicketId(ticketId: number) {
+  return prisma.payment.findFirst({
     where: {
       ticketId,
     },
   });
 }
 
-export type PaymentParams = Omit<Payment, 'id' | 'createdAt' | 'updatedAt'>;
-
-async function makePayment(ticketId: number, paymentParams: PaymentParams): Promise<[Payment, Ticket]> {
-  return await prisma.$transaction([
-    prisma.payment.create({
-      data: {
-        ticketId,
-        ...paymentParams,
-      },
-    }),
-    prisma.ticket.update({
-      where: {
-        id: ticketId,
-      },
-      data: {
-        status: TicketStatus.PAID,
-      },
-    }),
-  ]);
+async function createPayment(ticketId: number, params: PaymentParams) {
+  return prisma.payment.create({
+    data: {
+      ticketId,
+      ...params,
+    },
+  });
 }
 
-const paymentsRepository = {
-  findPaymentByTicketId,
-  makePayment,
-};
-
-export default paymentsRepository;
+export default { findPaymentByTicketId, createPayment };
