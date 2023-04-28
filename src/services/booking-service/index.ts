@@ -13,7 +13,7 @@ async function getUserBooking(userId: number) {
 
 async function checkEnrollmentAndTicket(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
-  if (!enrollment) throw notFoundError();
+  if (!enrollment) throw cannotBookRoomError();
 
   const ticket = await ticketsRepository.findTicketByEnrollmentId(enrollment.id);
 
