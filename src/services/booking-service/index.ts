@@ -17,7 +17,8 @@ async function checkEnrollmentAndTicket(userId: number) {
 
   const ticket = await ticketsRepository.findTicketByEnrollmentId(enrollment.id);
 
-  if (!ticket || ticket.status === 'RESERVED' || ticket.TicketType.isRemote) throw cannotBookRoomError();
+  if (!ticket || ticket.status === 'RESERVED' || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel)
+    throw cannotBookRoomError();
 }
 
 async function checkBookIsValid(roomId: number) {
@@ -45,7 +46,7 @@ async function changeBookingRoomForUserById(userId: number, roomId: number) {
 
   if (!userBooking || userBooking.userId !== userId) throw cannotBookRoomError();
 
-  const booking = bookingRepository.changeUserBooking(userBooking.id, roomId, userId);
+  const booking = await bookingRepository.changeUserBooking(userBooking.id, roomId, userId);
 
   return booking;
 }
