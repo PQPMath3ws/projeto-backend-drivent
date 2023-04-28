@@ -38,9 +38,22 @@ async function bookRoomByIdForUserId(userId: number, roomId: number) {
   return registerBooking;
 }
 
+async function changeBookingRoomForUserById(userId: number, roomId: number) {
+  await checkBookIsValid(roomId);
+
+  const userBooking = await bookingRepository.findBookingByUserId(userId);
+
+  if (!userBooking || userBooking.userId !== userId) throw cannotBookRoomError();
+
+  const booking = bookingRepository.changeUserBooking(userBooking.id, roomId, userId);
+
+  return booking;
+}
+
 const bookingService = {
   getUserBooking,
   bookRoomByIdForUserId,
+  changeBookingRoomForUserById,
 };
 
 export default bookingService;

@@ -31,10 +31,26 @@ async function registerBooking(roomId: number, userId: number) {
   });
 }
 
+async function changeUserBooking(id: number, roomId: number, userId: number) {
+  return prisma.booking.upsert({
+    where: {
+      id,
+    },
+    create: {
+      roomId,
+      userId,
+    },
+    update: {
+      roomId,
+    },
+  });
+}
+
 const bookingRepository = {
   findBookingByUserId,
   findBookingsByRoomId,
   registerBooking,
+  changeUserBooking,
 };
 
 export default bookingRepository;
