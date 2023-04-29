@@ -31,6 +31,14 @@ async function registerBooking(roomId: number, userId: number) {
   });
 }
 
+async function findBookingById(bookingId: number) {
+  return prisma.booking.findFirst({
+    where: {
+      id: bookingId,
+    },
+  });
+}
+
 async function changeUserBooking(id: number, roomId: number, userId: number) {
   return prisma.booking.upsert({
     where: {
@@ -50,6 +58,7 @@ const bookingRepository = {
   findBookingByUserId,
   findBookingsByRoomId,
   registerBooking,
+  findBookingById,
   changeUserBooking,
 };
 

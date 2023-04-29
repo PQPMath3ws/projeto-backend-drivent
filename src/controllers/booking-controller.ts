@@ -46,11 +46,11 @@ export async function changeUserBooking(req: AuthenticatedRequest, res: Response
   if (!roomId || Number.isNaN(Number(roomId))) return res.sendStatus(httpStatus.BAD_REQUEST);
 
   try {
-    const booking = await bookingService.getUserBooking(Number(userId));
-
-    if (booking && booking.id !== Number(bookingId)) return res.sendStatus(httpStatus.BAD_REQUEST);
-
-    const bookingChange = await bookingService.changeBookingRoomForUserById(Number(userId), Number(roomId));
+    const bookingChange = await bookingService.changeBookingRoomForUserById(
+      Number(userId),
+      Number(roomId),
+      Number(bookingId),
+    );
     return res.status(httpStatus.OK).send({
       bookingId: bookingChange.id,
     });

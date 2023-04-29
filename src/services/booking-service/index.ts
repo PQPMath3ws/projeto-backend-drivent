@@ -11,40 +11,48 @@ async function getUserBooking(userId: number) {
   return userBooking;
 }
 
-async function checkEnrollmentAndTicket(userId: number) {
+async function bookRoomByIdForUserId(userId: number, roomId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
   if (!enrollment) throw cannotBookRoomError();
 
   const ticket = await ticketsRepository.findTicketByEnrollmentId(enrollment.id);
 
-  if (!ticket || ticket.status === 'RESERVED' || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel)
+  if (!ticket || ticket.status !== 'PAID' || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel)
     throw cannotBookRoomError();
-}
 
-async function checkBookIsValid(roomId: number) {
   const room = await roomRepository.findRoomById(roomId);
   if (!room) throw notFoundError();
 
   const bookings = await bookingRepository.findBookingsByRoomId(roomId);
 
   if (room.capacity <= bookings.length) throw cannotBookRoomError();
-}
-
-async function bookRoomByIdForUserId(userId: number, roomId: number) {
-  await checkEnrollmentAndTicket(userId);
-  await checkBookIsValid(roomId);
 
   const registerBooking = bookingRepository.registerBooking(roomId, userId);
 
   return registerBooking;
 }
 
-async function changeBookingRoomForUserById(userId: number, roomId: number) {
-  await checkBookIsValid(roomId);
+async function changeBookingRoomForUserById(userId: number, roomId: number, bookingId: number) {
+  const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
+  if (!enrollment) throw cannotBookRoomError();
 
-  const userBooking = await bookingRepository.findBookingByUserId(userId);
+  const ticket = await ticketsRepository.findTicketByEnrollmentId(enrollment.id);
 
-  if (!userBooking || userBooking.userId !== userId) throw cannotBookRoomError();
+  if (!ticket || ticket.status !== 'PAID' || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel)
+    throw cannotBookRoomError();
+
+  const userBooking = await bookingRepository.findBookingById(bookingId);
+
+  if (!userBooking) throw cannotBookRoomError();
+
+  if (userBooking.userId !== userId) throw cannotBookRoomError();
+
+  const room = await roomRepository.findRoomById(roomId);
+  if (!room) throw notFoundError();
+
+  const bookings = await bookingRepository.findBookingsByRoomId(roomId);
+
+  if (room.capacity <= bookings.length) throw cannotBookRoomError();
 
   const booking = await bookingRepository.changeUserBooking(userBooking.id, roomId, userId);
 
