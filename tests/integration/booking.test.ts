@@ -289,7 +289,7 @@ describe('PUT /booking/:booking', () => {
       expect(response.status).toEqual(httpStatus.BAD_REQUEST);
     });
 
-    it('should respond with status 404 when user has not a booking', async () => {
+    it('should respond with status 403 when user has not a booking', async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
@@ -312,10 +312,10 @@ describe('PUT /booking/:booking', () => {
           roomId: room.id,
         });
 
-      expect(response.status).toEqual(httpStatus.NOT_FOUND);
+      expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
 
-    it('should respond with status 400 with invalid bookingId', async () => {
+    it('should respond with status 403 with invalid bookingId', async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
@@ -333,7 +333,7 @@ describe('PUT /booking/:booking', () => {
         roomId: otherRoom.id,
       });
 
-      expect(response.status).toEqual(httpStatus.BAD_REQUEST);
+      expect(response.status).toEqual(httpStatus.FORBIDDEN);
     });
 
     it("should respond with status 404 with a invalid body - there's no roomId", async () => {
